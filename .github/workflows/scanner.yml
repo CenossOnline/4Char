@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Run one complete scan cycle
+      - name: Discover for 30 minutes, then verify the full database
         run: python scanner.py
 
       - name: Commit database
@@ -43,7 +43,10 @@ jobs:
             git push
           fi
 
-      - name: Start the next scan cycle
+      - name: Queue the next scan → verify → scan cycle
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh workflow run scanner.yml --ref main
+        run: |
+          echo "Current cycle complete."
+          echo "Starting the next 30-minute discovery cycle..."
+          gh workflow run scanner.yml --ref main
