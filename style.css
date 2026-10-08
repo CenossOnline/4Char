@@ -873,3 +873,9 @@ footer span {
 header nav { margin-left: auto; }
 .last-scan { display:flex; align-items:center; gap:8px; }
 .last-scan strong { margin-left:0; }
+
+/* Final header alignment */
+.navbar nav { margin-left: auto; margin-right: 34px; }
+.scanner-status { display:flex; align-items:center; gap:8px; flex-shrink:0; color:var(--text-muted); font:700 9px "DM Mono",monospace; letter-spacing:1px; white-space:nowrap; }
+.scanner-status .status-dot { width:6px; height:6px; border-radius:50%; background:var(--green); box-shadow:0 0 9px var(--green); }
+@media (max-width:650px){ .navbar nav { margin-right:16px; } .scanner-status span:last-child { display:none; } }
