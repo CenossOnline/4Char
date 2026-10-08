@@ -118,15 +118,6 @@ function renderNames() {
         if (activeStatus === "ready" && item.status !== "ready") {
             return false;
         }
-
-        if (activeStatus === "soon" && item.status !== "soon") {
-            return false;
-        }
-
-        if (activeStatus === "new" && !item.new) {
-            return false;
-        }
-
         // Style
         if (activeStyle !== "all" && item.style !== activeStyle) {
             return false;
@@ -202,25 +193,7 @@ function createCard(item) {
 
     let statusText = "CLAIM READY";
     let statusClass = "ready";
-    let releaseText = "";
-
-    if (item.status === "soon") {
-
-        statusText = "RELEASING SOON";
-        statusClass = "soon";
-
-        releaseText = `~${item.release}`;
-    }
-
-    if (item.new) {
-
-        statusText = "NEW";
-        statusClass = "new";
-
-        if (item.status === "soon") {
-            statusText = "NEW / SOON";
-        }
-    }
+    let releaseText = "";    }
 
 
     return `
