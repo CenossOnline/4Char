@@ -21,13 +21,12 @@
     <header class="navbar">
         <nav>
             <a href="#names">Names</a>
-            </nav>
+        </nav>
     </header>
 
 
     <main>
 
-        <!-- HERO -->
         <section class="hero">
 
             <div class="eyebrow">
@@ -45,7 +44,8 @@
                 from a constantly updated collection.
             </p>
 
-            <div class="search-box"><input
+            <div class="search-box">
+                <input
                     id="searchInput"
                     type="text"
                     maxlength="4"
@@ -59,7 +59,6 @@
         </section>
 
 
-        <!-- CONTROLS -->
         <section class="controls" id="names">
 
             <div class="filter-group">
@@ -71,7 +70,9 @@
                 <button class="filter" data-status="ready">
                     <span class="filter-dot ready"></span>
                     Claim Ready
-                </button></div>
+                </button>
+
+            </div>
 
             <div class="sort-container">
 
@@ -79,7 +80,6 @@
 
                 <select id="sortSelect">
                     <option value="score">Highest Score</option>
-                    <option value="newest">Newest</option>
                     <option value="name">Name</option>
                 </select>
 
@@ -88,7 +88,6 @@
         </section>
 
 
-        <!-- ADVANCED FILTERS -->
         <section class="advanced-filters">
 
             <button id="toggleFilters" class="advanced-toggle">
@@ -182,7 +181,6 @@
         </section>
 
 
-        <!-- RESULTS HEADER -->
         <section class="results-header">
 
             <div>
@@ -191,21 +189,19 @@
             </div>
 
             <div class="last-scan">
-                <span>UPDATES EVERY HOUR</span>
+                <span>UPDATES AFTER EACH SCAN</span>
                 <span>•</span>
-                <strong>LAST SCAN · just now</strong>
+                <strong>LAST SCAN · awaiting scanner</strong>
             </div>
 
         </section>
 
 
-        <!-- NAME GRID -->
         <section class="name-grid" id="nameGrid">
             <!-- JavaScript inserts names here -->
         </section>
 
 
-        <!-- EMPTY -->
         <section id="emptyState" class="empty-state hidden">
 
             <div class="empty-icon">∅</div>
@@ -217,10 +213,6 @@
             </p>
 
         </section>
-
-
-        <!-- ABOUT -->
-        
 
     </main>
 
