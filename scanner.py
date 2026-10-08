@@ -28,6 +28,7 @@ VOWELS = set("aeiou")
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
 RARE = set("qxzj")
 
+# Keep obvious sexual/profane/hateful terms out of the public database.\nBLOCKED_NAMES = {\n    "cock", "cunt", "dick", "fuck", "milf", "nazi", "porn", "rape",\n    "sex", "shit", "slut", "whore",\n}\n
 START_CLUSTERS = {
     "bl", "br", "ch", "cl", "cr", "dr", "fl", "fr", "gl", "gr", "pl", "pr",
     "sc", "sh", "sk", "sl", "sm", "sn", "sp", "st", "sw", "th", "tr", "tw",
@@ -58,6 +59,9 @@ INITIAL_NAMES = [
 
 def is_clean(name: str, allow_rare: bool = False) -> bool:
     if len(name) != 4 or not name.isalpha():
+        return False
+
+    if name.lower() in BLOCKED_NAMES:
         return False
 
     if not allow_rare and any(c in RARE for c in name):
@@ -117,7 +121,7 @@ def load_database():
         names = sorted({
             str(name).lower()
             for name in names
-            if isinstance(name, str) and len(name) == 4 and name.isalpha()
+            if isinstance(name, str) and len(name) == 4 and name.isalpha() and is_clean(name.lower())
         })
 
         save_database(names)
