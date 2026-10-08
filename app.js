@@ -193,7 +193,7 @@ function createCard(item) {
 
     let statusText = "CLAIM READY";
     let statusClass = "ready";
-    let releaseText = "";    }
+    let releaseText = "";
 
 
     return `
