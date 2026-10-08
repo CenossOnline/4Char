@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>4CHAR — Minecraft Name Finder</title>
+    <meta name="description" content="Discover clean, rare and unique 4-character Minecraft usernames.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="background-grid"></div>
+
+    <header class="navbar">
+        <a href="#" class="logo">
+            <span class="logo-mark">4</span><span>CHAR</span>
+        </a>
+
+        <nav>
+            <a href="#names">Names</a>
+            <a href="#about">About</a>
+        </nav>
+
+        <div class="scanner-status">
+            <span class="status-dot"></span>
+            <span>SCANNER ONLINE</span>
+        </div>
+    </header>
+
+
+    <main>
+
+        <!-- HERO -->
+        <section class="hero">
+
+            <div class="eyebrow">
+                <span></span>
+                MINECRAFT USERNAME DISCOVERY
+            </div>
+
+            <h1>
+                Find a name<br>
+                <span>worth keeping.</span>
+            </h1>
+
+            <p class="hero-description">
+                Discover clean, rare and unusual 4-character Minecraft usernames
+                from a constantly updated collection.
+            </p>
+
+            <div class="search-box">
+                <div class="search-icon">⌕</div>
+
+                <input
+                    id="searchInput"
+                    type="text"
+                    maxlength="4"
+                    placeholder="Search names..."
+                    autocomplete="off"
+                >
+
+                <kbd>/</kbd>
+            </div>
+
+        </section>
+
+
+        <!-- CONTROLS -->
+        <section class="controls" id="names">
+
+            <div class="filter-group">
+
+                <button class="filter active" data-status="all">
+                    All
+                </button>
+
+                <button class="filter" data-status="ready">
+                    <span class="filter-dot ready"></span>
+                    Claim Ready
+                </button>
+
+                <button class="filter" data-status="soon">
+                    <span class="filter-dot soon"></span>
+                    Releasing Soon
+                </button>
+
+                <button class="filter" data-status="new">
+                    ✦ New
+                </button>
+
+            </div>
+
+            <div class="sort-container">
+
+                <label for="sortSelect">SORT</label>
+
+                <select id="sortSelect">
+                    <option value="score">Highest Score</option>
+                    <option value="newest">Newest</option>
+                    <option value="name">Name</option>
+                </select>
+
+            </div>
+
+        </section>
+
+
+        <!-- ADVANCED FILTERS -->
+        <section class="advanced-filters">
+
+            <button id="toggleFilters" class="advanced-toggle">
+                <span>☷</span>
+                Advanced filters
+                <span class="chevron">⌄</span>
+            </button>
+
+            <div id="advancedPanel" class="advanced-panel">
+
+                <div class="filter-section">
+
+                    <div class="filter-title">
+                        STYLE
+                    </div>
+
+                    <div class="chips">
+
+                        <button class="chip active" data-style="all">
+                            All
+                        </button>
+
+                        <button class="chip" data-style="pronounceable">
+                            Pronounceable
+                        </button>
+
+                        <button class="chip" data-style="cryptic">
+                            Cryptic
+                        </button>
+
+                        <button class="chip" data-style="almost-word">
+                            Almost-word
+                        </button>
+
+                        <button class="chip" data-style="weird">
+                            Weird
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="filter-section">
+
+                    <div class="filter-title">
+                        MINIMUM SCORE
+                    </div>
+
+                    <div class="range-row">
+
+                        <input
+                            id="scoreRange"
+                            type="range"
+                            min="0"
+                            max="100"
+                            value="0"
+                        >
+
+                        <span id="scoreValue">0+</span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="filter-section">
+
+                    <div class="filter-title">
+                        LETTERS
+                    </div>
+
+                    <div class="letter-options">
+
+                        <label>
+                            <input type="checkbox" id="rareLetters">
+                            Allow Q / X / Z / J
+                        </label>
+
+                        <label>
+                            <input type="checkbox" id="vowelsOnly">
+                            Vowel-heavy
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- RESULTS HEADER -->
+        <section class="results-header">
+
+            <div>
+                <span class="results-label">INDEXED NAMES</span>
+                <strong id="resultCount">0</strong>
+            </div>
+
+            <div class="last-scan">
+                LAST SCAN
+                <strong>just now</strong>
+            </div>
+
+        </section>
+
+
+        <!-- NAME GRID -->
+        <section class="name-grid" id="nameGrid">
+            <!-- JavaScript inserts names here -->
+        </section>
+
+
+        <!-- EMPTY -->
+        <section id="emptyState" class="empty-state hidden">
+
+            <div class="empty-icon">∅</div>
+
+            <h2>No names found</h2>
+
+            <p>
+                Try changing your filters or search for something else.
+            </p>
+
+        </section>
+
+
+        <!-- ABOUT -->
+        <section class="about" id="about">
+
+            <div class="about-number">01</div>
+
+            <div>
+
+                <div class="eyebrow">HOW IT WORKS</div>
+
+                <h2>
+                    A living database<br>
+                    of four characters.
+                </h2>
+
+                <p>
+                    4CHAR generates and scores possible usernames, then continuously
+                    verifies interesting names. Names that become unavailable are
+                    removed from the public collection.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+
+        <div class="footer-logo">
+            4CHAR<span>.</span>
+        </div>
+
+        <div class="footer-info">
+            <span>NAME DISCOVERY ENGINE</span>
+            <span>•</span>
+            <span>2026</span>
+        </div>
+
+    </footer>
+
+
+    <script src="app.js"></script>
+
+</body>
+</html>
