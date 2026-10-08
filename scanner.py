@@ -9,13 +9,11 @@ One run performs exactly one complete cycle:
     4. Remove names that are no longer available.
     5. Exit successfully.
 
-GitHub Actions runs this script again after each completed cycle.
-
+GitHub Actions starts the next cycle after this run completes.
 The local database is data/names.json.
 """
 
 import json
-import os
 import random
 import sys
 import time
@@ -28,7 +26,24 @@ VOWELS = set("aeiou")
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
 RARE = set("qxzj")
 
-# Keep obvious sexual/profane/hateful terms out of the public database.\nBLOCKED_NAMES = {\n    "cock", "cunt", "dick", "fuck", "milf", "nazi", "porn", "rape",\n    "sex", "shit", "slut", "whore",\n}\n
+# Keep obvious sexual, profane, hateful, and otherwise unsuitable names
+# out of the public database.
+BLOCKED_NAMES = {
+    "cock",
+    "cunt",
+    "dick",
+    "feck",
+    "fuck",
+    "milf",
+    "nazi",
+    "porn",
+    "rape",
+    "sex",
+    "shit",
+    "slut",
+    "whore",
+}
+
 START_CLUSTERS = {
     "bl", "br", "ch", "cl", "cr", "dr", "fl", "fr", "gl", "gr", "pl", "pr",
     "sc", "sh", "sk", "sl", "sm", "sn", "sp", "st", "sw", "th", "tr", "tw",
@@ -58,10 +73,12 @@ INITIAL_NAMES = [
 
 
 def is_clean(name: str, allow_rare: bool = False) -> bool:
+    name = name.lower()
+
     if len(name) != 4 or not name.isalpha():
         return False
 
-    if name.lower() in BLOCKED_NAMES:
+    if name in BLOCKED_NAMES:
         return False
 
     if not allow_rare and any(c in RARE for c in name):
@@ -105,7 +122,11 @@ def load_database():
     DATABASE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     if not DATABASE_FILE.exists():
-        names = sorted(set(INITIAL_NAMES))
+        names = sorted({
+            name.lower()
+            for name in INITIAL_NAMES
+            if is_clean(name)
+        })
         save_database(names)
         return names
 
@@ -121,9 +142,11 @@ def load_database():
         names = sorted({
             str(name).lower()
             for name in names
-            if isinstance(name, str) and len(name) == 4 and name.isalpha() and is_clean(name.lower())
+            if isinstance(name, str) and is_clean(name)
         })
 
+        # Also cleans any blocked names that may have entered the DB before
+        # the content filter was fixed.
         save_database(names)
         return names
 
@@ -136,11 +159,17 @@ def load_database():
 def save_database(names):
     DATABASE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
+    clean_names = sorted({
+        name.lower()
+        for name in names
+        if isinstance(name, str) and is_clean(name)
+    })
+
     temp_file = DATABASE_FILE.with_suffix(".json.tmp")
 
     data = {
         "updated_at": int(time.time()),
-        "names": sorted(set(names)),
+        "names": clean_names,
     }
 
     with temp_file.open("w", encoding="utf-8") as f:
@@ -201,6 +230,11 @@ def discover_for_30_minutes(database, session):
         if time.monotonic() - start >= DISCOVERY_SECONDS:
             break
 
+        # Defensive check: never query or save a blocked candidate even if
+        # candidate generation changes later.
+        if not is_clean(candidate):
+            continue
+
         if candidate in database_set:
             continue
 
@@ -227,6 +261,10 @@ def verify_database(database, session):
     kept = []
 
     for index, name in enumerate(database, 1):
+        if not is_clean(name):
+            print(f"  [{index}/{len(database)}] REMOVE: {name} (blocked)")
+            continue
+
         result = check_with_backoff(name, session)
 
         if result:
@@ -252,18 +290,21 @@ def main():
     })
 
     try:
-        # 30-minute discovery phase.
+        # Phase 1: discover new available names for 30 minutes.
         new_names = discover_for_30_minutes(database, session)
 
-        # Merge only. Existing names are never overwritten here.
+        # Phase 2: merge discoveries without overwriting existing names.
         database = sorted(set(database) | set(new_names))
         save_database(database)
         print(f"Discovery complete. Database now contains {len(database)} names.")
 
-        # Full verification phase.
+        # Phase 3: verify the entire database before another discovery phase.
         database = verify_database(database, session)
         save_database(database)
         print(f"Verification complete. {len(database)} names remain.")
+
+        print("\n=== CYCLE COMPLETE ===")
+        print("GitHub Actions will start the next discovery cycle.")
 
     except KeyboardInterrupt:
         print("\nStopped safely.")
