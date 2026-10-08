@@ -1,83 +1,13 @@
 const names = [
-    {
-        name: "iyey",
-        score: 94,
-        status: "ready",
-        style: "weird",
-        new: true
-    },
-    {
-        name: "doaf",
-        score: 93,
-        status: "soon",
-        style: "almost-word",
-        release: "4 days"
-    },
-    {
-        name: "uwiv",
-        score: 91,
-        status: "ready",
-        style: "cryptic",
-        new: true
-    },
-    {
-        name: "oyim",
-        score: 90,
-        status: "ready",
-        style: "almost-word"
-    },
-    {
-        name: "wiyi",
-        score: 87,
-        status: "ready",
-        style: "weird"
-    },
-    {
-        name: "oyih",
-        score: 86,
-        status: "ready",
-        style: "weird"
-    },
-    {
-        name: "ufuv",
-        score: 83,
-        status: "ready",
-        style: "cryptic"
-    },
-    {
-        name: "ocvl",
-        score: 82,
-        status: "ready",
-        style: "cryptic"
-    },
-
-    // Demo names for the interface
-    {
-        name: "qvel",
-        score: 89,
-        status: "soon",
-        style: "cryptic",
-        release: "11 days"
-    },
-    {
-        name: "aven",
-        score: 88,
-        status: "ready",
-        style: "pronounceable",
-        new: true
-    },
-    {
-        name: "velo",
-        score: 85,
-        status: "ready",
-        style: "pronounceable"
-    },
-    {
-        name: "kova",
-        score: 84,
-        status: "ready",
-        style: "pronounceable"
-    }
+    { name: "oyim", score: 90, status: "ready", style: "almost-word" },
+    { name: "oyih", score: 86, status: "ready", style: "weird" },
+    { name: "ufuv", score: 83, status: "ready", style: "cryptic" },
+    { name: "iyey", score: 94, status: "ready", style: "weird", new: true },
+    { name: "uwiv", score: 91, status: "ready", style: "cryptic", new: true },
+    { name: "wiyi", score: 87, status: "ready", style: "weird" },
+    { name: "goiw", score: 85, status: "ready", style: "cryptic" },
+    { name: "uyeg", score: 84, status: "ready", style: "almost-word" },
+    { name: "doaf", score: 93, status: "ready", style: "almost-word" }
 ];
 
 
