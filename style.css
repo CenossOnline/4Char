@@ -868,3 +868,8 @@ footer span {
 .release { color:var(--text-muted);font:9px "DM Mono",monospace; }
 @media (max-width:900px){.name-grid{grid-template-columns:repeat(2,1fr)}.advanced-panel{grid-template-columns:1fr 1fr}}
 @media (max-width:650px){.controls{align-items:stretch;flex-direction:column}.sort-container{justify-content:space-between}.name-grid{grid-template-columns:1fr}.advanced-panel{grid-template-columns:1fr}.advanced-panel.open{max-height:500px}}
+
+/* Header wordmark removed; keep navigation/status aligned */
+header nav { margin-left: auto; }
+.last-scan { display:flex; align-items:center; gap:8px; }
+.last-scan strong { margin-left:0; }
