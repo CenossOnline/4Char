@@ -1,5 +1,12 @@
 let names = [];
 
+const HIDDEN_NAMES = new Set([
+    "afus",
+    "ukig",
+    "oyim",
+    "reve"
+]);
+
 let activeStatus = "all";
 let activeStyle = "all";
 
@@ -86,7 +93,11 @@ async function loadNames() {
         }
 
         const data = await response.json();
-        names = prepareNames(Array.isArray(data) ? data : data.names || []);
+
+        const publicNames = (Array.isArray(data) ? data : data.names || [])
+            .filter(name => !HIDDEN_NAMES.has(String(name).toLowerCase()));
+
+        names = prepareNames(publicNames);
 
         if (data.updated_at && lastScan) {
             const date = new Date(data.updated_at * 1000);
