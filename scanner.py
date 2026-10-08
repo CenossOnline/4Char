@@ -9,11 +9,15 @@ Loop:
     4. Remove names that are no longer available.
     5. Repeat forever.
 
-The database is stored in data/names.json and is never replaced by a
-discovery scan. New names are merged into the existing database.
+The local database is data/names.json.
+
+If GITHUB_TOKEN is set, every completed phase is also synced to GitHub.
+That lets the Cloudflare deployment pick up the new database automatically.
 """
 
+import base64
 import json
+import os
 import random
 import sys
 import time
@@ -41,7 +45,11 @@ DISCOVERY_SECONDS = 30 * 60
 REQUEST_DELAY = 1.0
 API_URL = "https://api.minecraftservices.com/minecraft/profile/lookup/name/{}"
 
-# These are the names currently displayed by 4CHAR.
+GITHUB_API = "https://api.github.com"
+GITHUB_REPO = os.getenv("GITHUB_REPO", "CenossOnline/4Char")
+GITHUB_BRANCH = os.getenv("GITHUB_BRANCH", "main")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
 INITIAL_NAMES = [
     "oyim",
     "oyih",
@@ -116,26 +124,21 @@ def load_database():
         names = sorted({
             str(name).lower()
             for name in names
-            if isinstance(name, str) and len(name) == 4
+            if isinstance(name, str) and len(name) == 4 and name.isalpha()
         })
-
-        # Make sure the names already on the site are never lost.
-        names = sorted(set(names) | set(INITIAL_NAMES))
 
         save_database(names)
         return names
 
     except (OSError, json.JSONDecodeError) as exc:
         print(f"! Could not read {DATABASE_FILE}: {exc}")
-        print("  Keeping the existing file untouched.")
-        return list(INITIAL_NAMES)
+        print("  Keeping the existing database untouched.")
+        return []
 
 
 def save_database(names):
     DATABASE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-    # Write to a temporary file first so an interrupted write cannot
-    # leave the real database half-written.
     temp_file = DATABASE_FILE.with_suffix(".json.tmp")
 
     data = {
@@ -148,6 +151,60 @@ def save_database(names):
         f.write("\n")
 
     temp_file.replace(DATABASE_FILE)
+
+
+def sync_database_to_github():
+    """Push the completed database to GitHub when a token is configured."""
+    if not GITHUB_TOKEN:
+        print("  ! GITHUB_TOKEN is not set; database remains local.")
+        return False
+
+    try:
+        with DATABASE_FILE.open("rb") as f:
+            content = base64.b64encode(f.read()).decode("ascii")
+
+        headers = {
+            "Authorization": f"Bearer {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+
+        path = "data/names.json"
+        url = f"{GITHUB_API}/repos/{GITHUB_REPO}/contents/{path}"
+
+        current = requests.get(
+            url,
+            headers=headers,
+            params={"ref": GITHUB_BRANCH},
+            timeout=20,
+        )
+
+        if current.status_code not in (200, 404):
+            print(f"  ! GitHub read failed: HTTP {current.status_code}")
+            return False
+
+        payload = {
+            "message": "Update 4CHAR username database",
+            "content": content,
+            "branch": GITHUB_BRANCH,
+        }
+
+        if current.status_code == 200:
+            payload["sha"] = current.json()["sha"]
+
+        response = requests.put(url, headers=headers, json=payload, timeout=20)
+
+        if response.status_code not in (200, 201):
+            print(f"  ! GitHub sync failed: HTTP {response.status_code}")
+            print(f"    {response.text[:300]}")
+            return False
+
+        print("  [✓] Database synced to GitHub.")
+        return True
+
+    except requests.RequestException as exc:
+        print(f"  ! GitHub sync error: {exc}")
+        return False
 
 
 def check_available(name, session):
@@ -198,8 +255,7 @@ def discover_for_30_minutes(database, session):
     found = []
 
     for candidate in candidates:
-        elapsed = time.monotonic() - start
-        if elapsed >= DISCOVERY_SECONDS:
+        if time.monotonic() - start >= DISCOVERY_SECONDS:
             break
 
         if candidate in database_set:
@@ -247,6 +303,11 @@ def main():
     database = load_database()
     print(f"Loaded {len(database)} names.")
 
+    if GITHUB_TOKEN:
+        print(f"GitHub sync enabled: {GITHUB_REPO}")
+    else:
+        print("GitHub sync disabled: set GITHUB_TOKEN to publish updates.")
+
     session = requests.Session()
     session.headers.update({
         "User-Agent": "4CHAR-name-scanner/1.0"
@@ -254,22 +315,25 @@ def main():
 
     try:
         while True:
-            # Discovery phase.
+            # 30-minute discovery phase.
             new_names = discover_for_30_minutes(database, session)
 
-            # Merge, never overwrite.
+            # Merge only. Existing names are never overwritten here.
             database = sorted(set(database) | set(new_names))
             save_database(database)
             print(f"Database now contains {len(database)} names.")
+            sync_database_to_github()
 
-            # Verification phase.
+            # Full verification phase.
             database = verify_database(database, session)
             save_database(database)
             print(f"Verification complete. {len(database)} names remain.")
+            sync_database_to_github()
 
     except KeyboardInterrupt:
         print("\nStopped safely.")
         save_database(database)
+        sync_database_to_github()
         print(f"Saved {len(database)} names before exiting.")
 
 
