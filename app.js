@@ -1,19 +1,7 @@
-const names = [
-    { name: "oyim", score: 90, status: "ready", style: "almost-word" },
-    { name: "oyih", score: 86, status: "ready", style: "weird" },
-    { name: "ufuv", score: 83, status: "ready", style: "cryptic" },
-    { name: "iyey", score: 94, status: "ready", style: "weird", new: true },
-    { name: "uwiv", score: 91, status: "ready", style: "cryptic", new: true },
-    { name: "wiyi", score: 87, status: "ready", style: "weird" },
-    { name: "goiw", score: 85, status: "ready", style: "cryptic" },
-    { name: "uyeg", score: 84, status: "ready", style: "almost-word" },
-    { name: "doaf", score: 93, status: "ready", style: "almost-word" }
-];
-
+let names = [];
 
 let activeStatus = "all";
 let activeStyle = "all";
-
 
 const grid = document.getElementById("nameGrid");
 const emptyState = document.getElementById("emptyState");
@@ -31,39 +19,119 @@ const toggleFilters = document.getElementById("toggleFilters");
 const rareLetters = document.getElementById("rareLetters");
 const vowelsOnly = document.getElementById("vowelsOnly");
 
+const lastScan = document.querySelector(".last-scan strong");
+
+
+function getScore(name) {
+    let score = 70;
+
+    if (new Set(name).size === 4) score += 8;
+    if (/[aeiou]/.test(name)) score += 4;
+    if (/[qxzj]/.test(name)) score += 6;
+
+    const pattern = [...name]
+        .map(letter => /[aeiou]/.test(letter) ? "V" : "C")
+        .join("");
+
+    if (["CVCV", "VCVC", "CVVC"].includes(pattern)) score += 7;
+    if (/^[a-z]{4}$/.test(name)) score += 2;
+
+    return Math.min(score, 99);
+}
+
+
+function getStyle(name) {
+    const vowels = (name.match(/[aeiou]/g) || []).length;
+    const pattern = [...name]
+        .map(letter => /[aeiou]/.test(letter) ? "V" : "C")
+        .join("");
+
+    if (["CVCV", "VCVC", "CVVC"].includes(pattern) && vowels >= 2) {
+        return "almost-word";
+    }
+
+    if (vowels >= 2) {
+        return "weird";
+    }
+
+    return "cryptic";
+}
+
+
+function prepareNames(rawNames) {
+    return rawNames
+        .filter(name => typeof name === "string" && /^[a-z]{4}$/.test(name))
+        .map(name => {
+            const normalized = name.toLowerCase();
+
+            return {
+                name: normalized,
+                score: getScore(normalized),
+                status: "ready",
+                style: getStyle(normalized)
+            };
+        });
+}
+
+
+async function loadNames() {
+    try {
+        // Cache-bust so the browser picks up the latest scanner database.
+        const response = await fetch(`data/names.json?t=${Date.now()}`, {
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error(`Database returned HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        names = prepareNames(Array.isArray(data) ? data : data.names || []);
+
+        if (data.updated_at && lastScan) {
+            const date = new Date(data.updated_at * 1000);
+            lastScan.textContent = `LAST SCAN · ${date.toLocaleString([], {
+                dateStyle: "medium",
+                timeStyle: "short"
+            })}`;
+        }
+
+        renderNames();
+
+    } catch (error) {
+        console.error("Could not load 4CHAR database:", error);
+        names = [];
+        renderNames();
+    }
+}
+
 
 function renderNames() {
-
     const search = searchInput.value.toLowerCase().trim();
     const minimumScore = Number(scoreRange.value);
 
     let filtered = names.filter(item => {
 
-        // Search
         if (search && !item.name.includes(search)) {
             return false;
         }
 
-        // Status
         if (activeStatus === "ready" && item.status !== "ready") {
             return false;
         }
-        // Style
+
         if (activeStyle !== "all" && item.style !== activeStyle) {
             return false;
         }
 
-        // Score
         if (item.score < minimumScore) {
             return false;
         }
 
-        // Rare letters
         if (!rareLetters.checked && /[qxzj]/i.test(item.name)) {
             return false;
         }
 
-        // Vowel-heavy
         if (vowelsOnly.checked) {
             const vowels = item.name.match(/[aeiou]/g) || [];
 
@@ -76,55 +144,31 @@ function renderNames() {
     });
 
 
-    // SORT
-
     if (sortSelect.value === "score") {
-
         filtered.sort((a, b) => b.score - a.score);
 
     } else if (sortSelect.value === "name") {
-
         filtered.sort((a, b) => a.name.localeCompare(b.name));
-
-    } else if (sortSelect.value === "newest") {
-
-        filtered.sort((a, b) => Number(b.new) - Number(a.new));
     }
 
-
-    // RESULT COUNT
 
     resultCount.textContent = filtered.length;
 
 
-    // EMPTY STATE
-
     if (filtered.length === 0) {
-
         grid.innerHTML = "";
-
         emptyState.classList.remove("hidden");
-
         return;
-
-    } else {
-
-        emptyState.classList.add("hidden");
     }
 
-
-    // CARDS
-
+    emptyState.classList.add("hidden");
     grid.innerHTML = filtered.map(createCard).join("");
 }
 
 
 function createCard(item) {
-
-    let statusText = "CLAIM READY";
-    let statusClass = "ready";
-    let releaseText = "";
-
+    const statusText = "CLAIM READY";
+    const statusClass = "ready";
 
     return `
         <article class="name-card">
@@ -133,8 +177,7 @@ function createCard(item) {
 
                 <div class="card-status">
 
-                    <span class="card-status-dot ${statusClass}">
-                    </span>
+                    <span class="card-status-dot ${statusClass}"></span>
 
                     ${statusText}
 
@@ -158,9 +201,7 @@ function createCard(item) {
                     ${item.style.replace("-", " ")}
                 </span>
 
-                <span class="release">
-                    ${releaseText}
-                </span>
+                <span class="release"></span>
 
             </div>
 
@@ -207,17 +248,10 @@ document.querySelectorAll(".chip").forEach(button => {
 });
 
 
-/* SEARCH */
-
 searchInput.addEventListener("input", renderNames);
-
-
-/* SORT */
 
 sortSelect.addEventListener("change", renderNames);
 
-
-/* SCORE */
 
 scoreRange.addEventListener("input", () => {
 
@@ -227,24 +261,17 @@ scoreRange.addEventListener("input", () => {
 });
 
 
-/* OTHER FILTERS */
-
 rareLetters.addEventListener("change", renderNames);
 
 vowelsOnly.addEventListener("change", renderNames);
 
 
-/* ADVANCED FILTER TOGGLE */
-
 toggleFilters.addEventListener("click", () => {
 
     advancedPanel.classList.toggle("open");
-
     toggleFilters.classList.toggle("open");
 });
 
-
-/* "/" TO FOCUS SEARCH */
 
 document.addEventListener("keydown", event => {
 
@@ -254,12 +281,12 @@ document.addEventListener("keydown", event => {
     ) {
 
         event.preventDefault();
-
         searchInput.focus();
     }
 });
 
 
-/* INITIAL RENDER */
+loadNames();
 
-renderNames();
+// Refresh the public list periodically without requiring a page reload.
+setInterval(loadNames, 60 * 1000);
